@@ -339,10 +339,30 @@ git commit -m "feat: part status utility with tests"
 ## Task 4: Mileage utility + tests
 
 **Files:**
+- Modify: `src/types/index.ts` (add `is_full_tank` to FuelLog)
 - Create: `src/utils/mileage.ts`
 - Create: `__tests__/mileage.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+**Two-mode calculation:**
+- **Precise** mode: when ≥2 full-tank entries exist. Uses only full-tank entries as anchors, summing all fuel (full + partial) added between them. Exact mathematically.
+- **Estimated** mode: fallback when <2 full-tank entries. Treats the first entry as an odometer anchor (fuel ignored) and divides total km by total fuel added in subsequent entries.
+
+- [ ] **Step 1: Add `is_full_tank` to FuelLog type**
+
+Modify `src/types/index.ts` — add `is_full_tank` field to FuelLog:
+
+```typescript
+export interface FuelLog {
+  id: number;
+  vehicle_id: number;
+  odometer_km: number;
+  fuel_litres: number;
+  is_full_tank: number; // 0 or 1 — SQLite boolean
+  logged_at: number;
+}
+```
+
+- [ ] **Step 2: Write the failing tests**
 
 Create `__tests__/mileage.test.ts`:
 
@@ -350,8 +370,13 @@ Create `__tests__/mileage.test.ts`:
 import { calcMileage } from '../src/utils/mileage';
 import { FuelLog } from '../src/types';
 
-function makeLog(id: number, odometer_km: number, fuel_litres: number): FuelLog {
-  return { id, vehicle_id: 1, odometer_km, fuel_litres, logged_at: 0 };
+function makeLog(
+  id: number,
+  odometer_km: number,
+  fuel_litres: number,
+  is_full_tank: number = 1
+): FuelLog {
+  return { id, vehicle_id: 1, odometer_km, fuel_litres, is_full_tank, logged_at: 0 };
 }
 
 describe('calcMileage', () => {
@@ -368,63 +393,87 @@ describe('calcMileage', () => {
     expect(result.lifetimeAvg).toBeNull();
   });
 
-  it('calculates lifetime avg with two entries', () => {
-    // anchor at 10000, filled 5L at 10300 (drove 300km on 5L = 60 km/L)
-    const logs = [makeLog(1, 10000, 0), makeLog(2, 10300, 5)];
-    const result = calcMileage(logs);
-    expect(result.status).toBe('calculated');
-    expect(result.lifetimeAvg).toBeCloseTo(60);
+  describe('precise mode (2+ full-tank entries)', () => {
+    it('calculates exact mileage between two full tanks', () => {
+      // Two full tanks 300km apart, 5L added at the second one
+      const logs = [makeLog(1, 10000, 5, 1), makeLog(2, 10300, 5, 1)];
+      const result = calcMileage(logs);
+      expect(result.status).toBe('precise');
+      expect(result.lifetimeAvg).toBeCloseTo(60); // 300km / 5L
+    });
+
+    it('includes partial fills between full-tank anchors', () => {
+      // Full → partial → full: 200km / (3L partial + 4L full) = 200/7
+      const logs = [
+        makeLog(1, 10000, 5, 1),  // full anchor (fuel ignored as anchor)
+        makeLog(2, 10100, 3, 0),  // partial — included in fuel sum
+        makeLog(3, 10200, 4, 1),  // full — included in fuel sum
+      ];
+      const result = calcMileage(logs);
+      expect(result.status).toBe('precise');
+      expect(result.lifetimeAvg).toBeCloseTo(200 / 7);
+    });
+
+    it('uses only full-tank anchors for last5Avg in precise mode', () => {
+      // 7 full-tank entries 100km apart with 5L each
+      const logs = Array.from({ length: 7 }, (_, i) =>
+        makeLog(i + 1, 10000 + i * 100, 5, 1)
+      );
+      const result = calcMileage(logs);
+      expect(result.status).toBe('precise');
+      // lifetime: (10600-10000) / (6 * 5L) = 600/30 = 20
+      expect(result.lifetimeAvg).toBeCloseTo(20);
+      // last5: last 6 full-tank entries, same answer here
+      expect(result.last5Avg).toBeCloseTo(20);
+    });
+
+    it('falls back to estimated mode when only one full-tank entry exists', () => {
+      const logs = [
+        makeLog(1, 10000, 5, 1),  // only full tank
+        makeLog(2, 10300, 5, 0),  // partial
+      ];
+      const result = calcMileage(logs);
+      expect(result.status).toBe('estimated');
+      expect(result.lifetimeAvg).toBeCloseTo(60); // 300/5
+    });
   });
 
-  it('ignores fuel of first entry in lifetime avg', () => {
-    // first entry fuel should not affect calculation
-    const logs = [makeLog(1, 10000, 999), makeLog(2, 10300, 5)];
-    const result = calcMileage(logs);
-    expect(result.lifetimeAvg).toBeCloseTo(60);
-  });
+  describe('estimated mode (fewer than 2 full-tank entries)', () => {
+    it('calculates lifetime avg with two non-full entries', () => {
+      const logs = [makeLog(1, 10000, 0, 0), makeLog(2, 10300, 5, 0)];
+      const result = calcMileage(logs);
+      expect(result.status).toBe('estimated');
+      expect(result.lifetimeAvg).toBeCloseTo(60);
+    });
 
-  it('last5Avg uses most recent 6 entries when more than 6 exist', () => {
-    // 8 entries: entries 0-7, odometer 10000-17000 in 1000km steps, 10L each
-    // lifetime: 7000km / 70L = 100 km/L
-    // last5: entries 2-7: 5000km / 50L = 100 km/L (same in this case)
-    const logs = Array.from({ length: 8 }, (_, i) =>
-      makeLog(i + 1, 10000 + i * 1000, 10)
-    );
-    const result = calcMileage(logs);
-    expect(result.status).toBe('calculated');
-    expect(result.lifetimeAvg).toBeCloseTo(100);
-    expect(result.last5Avg).toBeCloseTo(100);
-  });
+    it('ignores fuel of first entry in lifetime avg', () => {
+      const logs = [makeLog(1, 10000, 999, 0), makeLog(2, 10300, 5, 0)];
+      const result = calcMileage(logs);
+      expect(result.lifetimeAvg).toBeCloseTo(60);
+    });
 
-  it('last5Avg differs from lifetimeAvg when recent fills differ', () => {
-    // 7 entries: first 2 have bad mileage (100km/5L=20), last 5 have good mileage (200km/5L=40)
-    // Positions: 0, 100, 200, 400, 600, 800, 1000
-    const logs = [
-      makeLog(1, 0, 0),     // anchor
-      makeLog(2, 100, 5),   // 100km / 5L = 20
-      makeLog(3, 200, 5),   // 100km / 5L = 20
-      makeLog(4, 400, 5),   // 200km / 5L = 40
-      makeLog(5, 600, 5),   // 200km / 5L = 40
-      makeLog(6, 800, 5),   // 200km / 5L = 40
-      makeLog(7, 1000, 5),  // 200km / 5L = 40
-    ];
-    const result = calcMileage(logs);
-    // lifetime: 1000km / 30L ≈ 33.33
-    expect(result.lifetimeAvg).toBeCloseTo(33.33, 1);
-    // last5: entries[1..6] = 900km / 25L = 36
-    expect(result.last5Avg).toBeCloseTo(36, 1);
+    it('last5Avg uses most recent 6 entries', () => {
+      const logs = Array.from({ length: 8 }, (_, i) =>
+        makeLog(i + 1, 10000 + i * 1000, 10, 0)
+      );
+      const result = calcMileage(logs);
+      expect(result.status).toBe('estimated');
+      // lifetime: 7000 / 70 = 100
+      expect(result.lifetimeAvg).toBeCloseTo(100);
+      expect(result.last5Avg).toBeCloseTo(100);
+    });
   });
 
   it('sorts entries by odometer before calculating', () => {
-    // Same as two-entry test but logs given out of order
-    const logs = [makeLog(2, 10300, 5), makeLog(1, 10000, 0)];
+    const logs = [makeLog(2, 10300, 5, 1), makeLog(1, 10000, 5, 1)];
     const result = calcMileage(logs);
+    expect(result.status).toBe('precise');
     expect(result.lifetimeAvg).toBeCloseTo(60);
   });
 });
 ```
 
-- [ ] **Step 2: Run tests to confirm they fail**
+- [ ] **Step 3: Run tests to confirm they fail**
 
 ```bash
 npx jest __tests__/mileage.test.ts
@@ -432,7 +481,7 @@ npx jest __tests__/mileage.test.ts
 
 Expected: FAIL — "Cannot find module '../src/utils/mileage'"
 
-- [ ] **Step 3: Create src/utils/mileage.ts**
+- [ ] **Step 4: Create src/utils/mileage.ts**
 
 ```typescript
 import { FuelLog } from '@/types';
@@ -440,7 +489,7 @@ import { FuelLog } from '@/types';
 export interface MileageResult {
   lifetimeAvg: number | null;
   last5Avg: number | null;
-  status: 'no-logs' | 'need-more' | 'calculated';
+  status: 'no-logs' | 'need-more' | 'estimated' | 'precise';
 }
 
 export function calcMileage(logs: FuelLog[]): MileageResult {
@@ -453,14 +502,38 @@ export function calcMileage(logs: FuelLog[]): MileageResult {
     return { lifetimeAvg: null, last5Avg: null, status: 'need-more' };
   }
 
-  const lifetimeAvg = calcAvg(sorted);
-  // last5: take last 6 entries (covers 5 intervals), or all if fewer
-  const last5Avg = calcAvg(sorted.slice(-6));
+  // Find full-tank entries — they make precise mode possible
+  const fullTankIndices = sorted
+    .map((log, i) => (log.is_full_tank ? i : -1))
+    .filter(i => i >= 0);
 
-  return { lifetimeAvg, last5Avg, status: 'calculated' };
+  if (fullTankIndices.length >= 2) {
+    // Precise mode: anchor on full-tank entries, include all fuel (incl. partial fills) between them
+    const lifetimeAvg = calcPreciseAvg(sorted, fullTankIndices);
+    const last5Avg = calcPreciseAvg(sorted, fullTankIndices.slice(-6));
+    return { lifetimeAvg, last5Avg, status: 'precise' };
+  }
+
+  // Estimated mode: first entry is just an odometer anchor (fuel ignored)
+  const lifetimeAvg = calcEstimatedAvg(sorted);
+  const last5Avg = calcEstimatedAvg(sorted.slice(-6));
+  return { lifetimeAvg, last5Avg, status: 'estimated' };
 }
 
-function calcAvg(logs: FuelLog[]): number {
+function calcPreciseAvg(sorted: FuelLog[], anchorIndices: number[]): number {
+  const firstIdx = anchorIndices[0];
+  const lastIdx = anchorIndices[anchorIndices.length - 1];
+  const kmDriven = sorted[lastIdx].odometer_km - sorted[firstIdx].odometer_km;
+  // Fuel from entries AFTER first anchor up to and INCLUDING last anchor
+  let totalFuel = 0;
+  for (let i = firstIdx + 1; i <= lastIdx; i++) {
+    totalFuel += sorted[i].fuel_litres;
+  }
+  if (totalFuel === 0) return 0;
+  return kmDriven / totalFuel;
+}
+
+function calcEstimatedAvg(logs: FuelLog[]): number {
   const kmDriven = logs[logs.length - 1].odometer_km - logs[0].odometer_km;
   const totalFuel = logs.slice(1).reduce((sum, l) => sum + l.fuel_litres, 0);
   if (totalFuel === 0) return 0;
@@ -468,7 +541,7 @@ function calcAvg(logs: FuelLog[]): number {
 }
 ```
 
-- [ ] **Step 4: Run tests to confirm they pass**
+- [ ] **Step 5: Run tests to confirm they pass**
 
 ```bash
 npx jest __tests__/mileage.test.ts
@@ -476,7 +549,7 @@ npx jest __tests__/mileage.test.ts
 
 Expected: PASS — all tests passed.
 
-- [ ] **Step 5: Run all tests**
+- [ ] **Step 6: Run all tests**
 
 ```bash
 npx jest
@@ -484,11 +557,11 @@ npx jest
 
 Expected: all tests pass.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/utils/mileage.ts __tests__/mileage.test.ts
-git commit -m "feat: mileage calculator utility with tests"
+git add src/types/index.ts src/utils/mileage.ts __tests__/mileage.test.ts
+git commit -m "feat: mileage calculator with precise/estimated modes"
 ```
 
 ---
@@ -534,6 +607,7 @@ export async function migrateDb(db: SQLiteDatabase): Promise<void> {
         vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
         odometer_km REAL NOT NULL,
         fuel_litres REAL NOT NULL,
+        is_full_tank INTEGER NOT NULL DEFAULT 1,
         logged_at INTEGER NOT NULL
       );
 
@@ -764,13 +838,15 @@ export async function addFuelLog(
   db: SQLiteDatabase,
   vehicleId: number,
   odometerKm: number,
-  fuelLitres: number
+  fuelLitres: number,
+  isFullTank: boolean
 ): Promise<void> {
   await db.runAsync(
-    'INSERT INTO fuel_logs (vehicle_id, odometer_km, fuel_litres, logged_at) VALUES (?, ?, ?, ?)',
+    'INSERT INTO fuel_logs (vehicle_id, odometer_km, fuel_litres, is_full_tank, logged_at) VALUES (?, ?, ?, ?, ?)',
     vehicleId,
     odometerKm,
     fuelLitres,
+    isFullTank ? 1 : 0,
     Date.now()
   );
   // Bump vehicle odometer to latest reading if higher
@@ -1424,7 +1500,7 @@ const styles = StyleSheet.create({
 
 ```typescript
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Colors, Spacing } from '@/constants/theme';
 import { addFuelLog } from '@/db/fuelLogs';
@@ -1449,11 +1525,13 @@ export function LogFuelModal({
   const db = useSQLiteContext();
   const [odometerStr, setOdometerStr] = useState('');
   const [litresStr, setLitresStr] = useState('');
+  const [isFullTank, setIsFullTank] = useState(true);
 
   useEffect(() => {
     if (visible) {
       setOdometerStr(String(currentKm));
       setLitresStr('');
+      setIsFullTank(true);
     }
   }, [visible, currentKm]);
 
@@ -1463,7 +1541,7 @@ export function LogFuelModal({
 
   async function handleSave() {
     if (!isValid) return;
-    await addFuelLog(db, vehicleId, odometer, litres);
+    await addFuelLog(db, vehicleId, odometer, litres, isFullTank);
     onSaved();
     onClose();
   }
@@ -1503,6 +1581,21 @@ export function LogFuelModal({
         />
       </View>
 
+      <View style={styles.toggleRow}>
+        <View style={styles.toggleText}>
+          <ThemedText type="default">Filled to full</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Improves mileage accuracy
+          </ThemedText>
+        </View>
+        <Switch
+          value={isFullTank}
+          onValueChange={setIsFullTank}
+          trackColor={{ false: Colors.dark.backgroundSelected, true: Colors.dark.primary }}
+          thumbColor="#fff"
+        />
+      </View>
+
       <TouchableOpacity
         style={[styles.button, !isValid && styles.buttonDisabled]}
         onPress={handleSave}
@@ -1529,6 +1622,17 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     color: Colors.dark.text,
     fontSize: 16,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: Spacing.two,
+    marginBottom: Spacing.two,
+  },
+  toggleText: {
+    flex: 1,
+    gap: Spacing.half,
   },
   button: {
     backgroundColor: Colors.dark.primary,
@@ -2557,10 +2661,21 @@ export default function VehicleDetailScreen() {
     ]);
   }
 
-  const mileageLabel = () => {
+  const mileageEmptyLabel = () => {
     if (!mileage) return null;
     if (mileage.status === 'no-logs') return 'No fill-ups logged yet';
     if (mileage.status === 'need-more') return 'Log one more fill-up to see mileage';
+    return null;
+  };
+
+  const mileageBadge = () => {
+    if (!mileage) return null;
+    if (mileage.status === 'precise') {
+      return { label: '✓ Precise', color: Colors.dark.success };
+    }
+    if (mileage.status === 'estimated') {
+      return { label: '~ Estimated', color: Colors.dark.warning };
+    }
     return null;
   };
 
@@ -2664,7 +2779,7 @@ export default function VehicleDetailScreen() {
                 {log.odometer_km.toLocaleString()} km
               </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                {log.fuel_litres} L
+                {log.fuel_litres} L{log.is_full_tank ? '' : ' (partial)'}
               </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 {new Date(log.logged_at).toLocaleDateString()}
@@ -2675,12 +2790,19 @@ export default function VehicleDetailScreen() {
 
         {/* ── Mileage ── */}
         <View style={styles.section}>
-          <ThemedText type="default" style={styles.sectionTitle}>
-            Mileage
-          </ThemedText>
+          <View style={styles.mileageHeader}>
+            <ThemedText type="default" style={styles.sectionTitle}>
+              Mileage
+            </ThemedText>
+            {mileageBadge() && (
+              <ThemedText type="small" style={{ color: mileageBadge()!.color }}>
+                {mileageBadge()!.label}
+              </ThemedText>
+            )}
+          </View>
 
-          {mileageLabel() ? (
-            <ThemedText themeColor="textSecondary">{mileageLabel()}</ThemedText>
+          {mileageEmptyLabel() ? (
+            <ThemedText themeColor="textSecondary">{mileageEmptyLabel()}</ThemedText>
           ) : (
             <View style={styles.mileageCards}>
               <View style={styles.mileageCard}>
@@ -2825,6 +2947,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderBottomWidth: 1,
     borderBottomColor: Colors.dark.backgroundSelected,
+  },
+  mileageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   mileageCards: {
     flexDirection: 'row',

@@ -43,15 +43,32 @@ Three SQLite tables managed by a migration system.
 | vehicle_id | INTEGER FK | → vehicles.id (CASCADE DELETE) |
 | odometer_km | REAL | odometer reading at this fill-up |
 | fuel_litres | REAL | amount of fuel added |
+| is_full_tank | INTEGER | 1 = filled to full, 0 = partial fill (default 1) |
 | logged_at | INTEGER | unix timestamp |
 
-**Mileage calculation:**
-- The first fuel log entry for a vehicle is an odometer anchor only (fuel amount ignored)
-- `lifetime_avg = (latest_odometer - first_odometer) / sum(fuel_litres of all entries except first)`
-- `last5_avg` = same formula applied to the most recent 6 entries (5 intervals)
-- Requires 2+ entries to show a result
-- 0 entries → "No fill-ups logged yet"
-- 1 entry → "Log one more fill-up to see mileage"
+**Mileage calculation — two-mode:**
+
+The calculation has two modes — *precise* (preferred) and *estimated* (fallback):
+
+**Precise mode** — used when 2+ full-tank entries exist:
+- `precise_avg = (last_full.odometer - first_full.odometer) / sum(fuel_litres in entries between first_full (exclusive) and last_full (inclusive))`
+- This is exact: between two full-tank states, every drop of fuel added (full or partial) was consumed
+- `last5_avg` = same formula using the most recent 6 full-tank entries
+
+**Estimated mode** — fallback when fewer than 2 full-tank entries exist:
+- `estimated_avg = (latest_odometer - first_odometer) / sum(fuel_litres of all entries except first)`
+- Assumes user fills to similar levels each time; noisy but converges over many fills
+- `last5_avg` = same formula applied to the most recent 6 entries
+
+**Status indicator:**
+- 0 entries → `no-logs` ("No fill-ups logged yet")
+- 1 entry → `need-more` ("Log one more fill-up to see mileage")
+- 2+ entries with <2 full-tank → `estimated`
+- 2+ full-tank entries → `precise`
+
+The UI shows a label next to mileage values: ✓ Precise or ~ Estimated.
+
+**Defaults:** New fuel log entries default to `is_full_tank = 1` (most users top up to full).
 
 ---
 
