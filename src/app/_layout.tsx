@@ -1,12 +1,12 @@
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-import React, { useState } from 'react';
-import { SQLiteProvider } from 'expo-sqlite';
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { SQLiteProvider } from "expo-sqlite";
+import React, { useState } from "react";
 
-import { migrateDb } from '@/db/migrations';
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
-import { FAB } from '@/components/fab';
-import { AddSheet } from '@/components/add-sheet';
+import { AddSheet } from "@/components/add-sheet";
+import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import AppTabs from "@/components/app-tabs";
+import { FAB } from "@/components/fab";
+import { migrateDb } from "@/db/migrations";
 
 export default function TabLayout() {
   const [addOpen, setAddOpen] = useState(false);

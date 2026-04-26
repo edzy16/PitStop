@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { Colors, Spacing } from '@/constants/theme';
-import { Part } from '@/types';
-import { logReplacement } from '@/db/parts';
-import { updateOdometer } from '@/db/vehicles';
-import { ModalSheet } from '@/components/modal-sheet';
-import { ThemedText } from '@/components/themed-text';
+import { ModalSheet } from "@/components/modal-sheet";
+import { ThemedText } from "@/components/themed-text";
+import { Colors, Spacing } from "@/constants/theme";
+import { logReplacement } from "@/db/parts";
+import { updateOdometer } from "@/db/vehicles";
+import { Part } from "@/types";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 interface LogReplacementModalProps {
   visible: boolean;
@@ -26,7 +26,7 @@ export function LogReplacementModal({
   currentKm,
 }: LogReplacementModalProps) {
   const db = useSQLiteContext();
-  const [kmStr, setKmStr] = useState('');
+  const [kmStr, setKmStr] = useState("");
 
   useEffect(() => {
     if (visible) setKmStr(String(currentKm));
@@ -47,7 +47,7 @@ export function LogReplacementModal({
       onSaved();
       onClose();
     } catch (error) {
-      console.error('Failed to log replacement:', error);
+      console.error("Failed to log replacement:", error);
       // User can retry without modal closing
     }
   }
@@ -57,7 +57,11 @@ export function LogReplacementModal({
       <ThemedText type="subtitle" style={styles.title}>
         Log Replacement
       </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary" style={styles.partName}>
+      <ThemedText
+        type="small"
+        themeColor="textSecondary"
+        style={styles.partName}
+      >
         {part.name}
       </ThemedText>
 
@@ -79,7 +83,8 @@ export function LogReplacementModal({
       <TouchableOpacity
         style={[styles.button, !isValid && styles.buttonDisabled]}
         onPress={handleSave}
-        disabled={!isValid}>
+        disabled={!isValid}
+      >
         <ThemedText type="default" style={styles.buttonText}>
           Log Replacement
         </ThemedText>
@@ -110,14 +115,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.primary,
     borderRadius: Spacing.two,
     padding: Spacing.three,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: Spacing.two,
   },
   buttonDisabled: {
     opacity: 0.4,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
 });

@@ -1,4 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -6,26 +8,24 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors, BottomTabInset, Spacing } from '@/constants/theme';
-import { FuelLog, Part, Vehicle } from '@/types';
-import { getVehicleById, updateOdometer } from '@/db/vehicles';
-import { getPartsByVehicle, deletePart } from '@/db/parts';
+import { AddPartModal } from "@/components/modals/add-part-modal";
+import { LogFuelModal } from "@/components/modals/log-fuel-modal";
+import { LogReplacementModal } from "@/components/modals/log-replacement-modal";
+import { PartStatusRow } from "@/components/part-status-row";
+import { ThemedText } from "@/components/themed-text";
+import { BottomTabInset, Colors, Spacing } from "@/constants/theme";
 import {
-  getFuelLogsByVehicle,
   deleteFuelLog,
+  getFuelLogsByVehicle,
   getMileageForVehicle,
-} from '@/db/fuelLogs';
-import { MileageResult } from '@/utils/mileage';
-import { PartStatusRow } from '@/components/part-status-row';
-import { ThemedText } from '@/components/themed-text';
-import { AddPartModal } from '@/components/modals/add-part-modal';
-import { LogReplacementModal } from '@/components/modals/log-replacement-modal';
-import { LogFuelModal } from '@/components/modals/log-fuel-modal';
+} from "@/db/fuelLogs";
+import { deletePart, getPartsByVehicle } from "@/db/parts";
+import { getVehicleById, updateOdometer } from "@/db/vehicles";
+import { FuelLog, Part, Vehicle } from "@/types";
+import { MileageResult } from "@/utils/mileage";
 
 export default function VehicleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,7 +42,7 @@ export default function VehicleDetailScreen() {
   const [parts, setParts] = useState<Part[]>([]);
   const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
   const [mileage, setMileage] = useState<MileageResult | null>(null);
-  const [odometerInput, setOdometerInput] = useState('');
+  const [odometerInput, setOdometerInput] = useState("");
   const [editingOdometer, setEditingOdometer] = useState(false);
 
   const [addPartOpen, setAddPartOpen] = useState(false);
@@ -71,7 +71,7 @@ export default function VehicleDetailScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [loadData])
+    }, [loadData]),
   );
 
   if (!vehicle) return null;
@@ -85,17 +85,17 @@ export default function VehicleDetailScreen() {
   }
 
   function handlePartLongPress(part: Part) {
-    Alert.alert(part.name, 'What would you like to do?', [
-      { text: 'Edit', onPress: () => setEditPart(part) },
+    Alert.alert(part.name, "What would you like to do?", [
+      { text: "Edit", onPress: () => setEditPart(part) },
       {
-        text: 'Delete',
-        style: 'destructive',
+        text: "Delete",
+        style: "destructive",
         onPress: () =>
-          Alert.alert('Delete Part', `Delete "${part.name}"?`, [
-            { text: 'Cancel', style: 'cancel' },
+          Alert.alert("Delete Part", `Delete "${part.name}"?`, [
+            { text: "Cancel", style: "cancel" },
             {
-              text: 'Delete',
-              style: 'destructive',
+              text: "Delete",
+              style: "destructive",
               onPress: async () => {
                 await deletePart(db, part.id);
                 loadData();
@@ -103,16 +103,16 @@ export default function VehicleDetailScreen() {
             },
           ]),
       },
-      { text: 'Cancel', style: 'cancel' },
+      { text: "Cancel", style: "cancel" },
     ]);
   }
 
   function handleFuelLogLongPress(log: FuelLog) {
-    Alert.alert('Delete Entry', 'Remove this fuel log entry?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Delete Entry", "Remove this fuel log entry?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Delete',
-        style: 'destructive',
+        text: "Delete",
+        style: "destructive",
         onPress: async () => {
           await deleteFuelLog(db, log.id);
           loadData();
@@ -123,19 +123,19 @@ export default function VehicleDetailScreen() {
 
   const mileageEmptyLabel = () => {
     if (!mileage) return null;
-    if (mileage.status === 'no-logs') return 'No fill-ups logged yet';
-    if (mileage.status === 'need-more')
-      return 'Log one more fill-up to see mileage';
+    if (mileage.status === "no-logs") return "No fill-ups logged yet";
+    if (mileage.status === "need-more")
+      return "Log one more fill-up to see mileage";
     return null;
   };
 
   const mileageBadge = () => {
     if (!mileage) return null;
-    if (mileage.status === 'precise') {
-      return { label: '✓ Precise', color: Colors.dark.success };
+    if (mileage.status === "precise") {
+      return { label: "✓ Precise", color: Colors.dark.success };
     }
-    if (mileage.status === 'estimated') {
-      return { label: '~ Estimated', color: Colors.dark.warning };
+    if (mileage.status === "estimated") {
+      return { label: "~ Estimated", color: Colors.dark.warning };
     }
     return null;
   };
@@ -146,11 +146,13 @@ export default function VehicleDetailScreen() {
         contentContainerStyle={[
           styles.content,
           { paddingBottom: BottomTabInset + Spacing.six },
-        ]}>
-        <SafeAreaView edges={['top']}>
+        ]}
+      >
+        <SafeAreaView edges={["top"]}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={styles.backButton}>
+            style={styles.backButton}
+          >
             <ThemedText themeColor="primary">← Back</ThemedText>
           </TouchableOpacity>
           <ThemedText type="subtitle" style={styles.vehicleName}>
@@ -174,15 +176,16 @@ export default function VehicleDetailScreen() {
               No parts tracked yet.
             </ThemedText>
           )}
-          {parts.map(part => (
+          {parts.map((part) => (
             <TouchableOpacity
               key={part.id}
               onLongPress={() => handlePartLongPress(part)}
-              activeOpacity={1}>
+              activeOpacity={1}
+            >
               <PartStatusRow
                 part={part}
                 currentKm={vehicle.current_km}
-                onPress={p => setReplacePart(p)}
+                onPress={(p) => setReplacePart(p)}
               />
             </TouchableOpacity>
           ))}
@@ -206,7 +209,8 @@ export default function VehicleDetailScreen() {
               />
               <TouchableOpacity
                 style={styles.saveButton}
-                onPress={handleOdometerSave}>
+                onPress={handleOdometerSave}
+              >
                 <ThemedText style={styles.saveButtonText}>Save</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setEditingOdometer(false)}>
@@ -240,16 +244,17 @@ export default function VehicleDetailScreen() {
               No fuel entries yet.
             </ThemedText>
           )}
-          {[...fuelLogs].reverse().map(log => (
+          {[...fuelLogs].reverse().map((log) => (
             <TouchableOpacity
               key={log.id}
               onLongPress={() => handleFuelLogLongPress(log)}
-              style={styles.fuelRow}>
+              style={styles.fuelRow}
+            >
               <ThemedText type="small">
                 {log.odometer_km.toLocaleString()} km
               </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                {log.fuel_litres} L{log.is_full_tank ? '' : ' (partial)'}
+                {log.fuel_litres} L{log.is_full_tank ? "" : " (partial)"}
               </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 {new Date(log.logged_at).toLocaleDateString()}
@@ -265,9 +270,7 @@ export default function VehicleDetailScreen() {
               Mileage
             </ThemedText>
             {mileageBadge() && (
-              <ThemedText
-                type="small"
-                style={{ color: mileageBadge()!.color }}>
+              <ThemedText type="small" style={{ color: mileageBadge()!.color }}>
                 {mileageBadge()!.label}
               </ThemedText>
             )}
@@ -371,18 +374,18 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: "700",
     fontSize: 18,
   },
   odometerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: Colors.dark.backgroundElement,
     borderRadius: Spacing.two,
     padding: Spacing.three,
@@ -390,8 +393,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.dark.backgroundSelected,
   },
   odometerEdit: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
   },
   odometerInput: {
@@ -409,32 +412,32 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
   },
   saveButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   fuelHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: Spacing.two,
   },
   smallLink: {
     fontSize: 13,
   },
   fuelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: Spacing.two,
     borderBottomWidth: 1,
     borderBottomColor: Colors.dark.backgroundSelected,
   },
   mileageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   mileageCards: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.three,
   },
   mileageCard: {
@@ -444,7 +447,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.dark.backgroundSelected,
     padding: Spacing.three,
-    alignItems: 'center',
+    alignItems: "center",
     gap: Spacing.half,
   },
 });

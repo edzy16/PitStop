@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Switch, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { Colors, Spacing } from '@/constants/theme';
-import { addFuelLog } from '@/db/fuelLogs';
-import { ModalSheet } from '@/components/modal-sheet';
-import { ThemedText } from '@/components/themed-text';
+import { ModalSheet } from "@/components/modal-sheet";
+import { ThemedText } from "@/components/themed-text";
+import { Colors, Spacing } from "@/constants/theme";
+import { addFuelLog } from "@/db/fuelLogs";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  Switch,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface LogFuelModalProps {
   visible: boolean;
@@ -22,21 +28,22 @@ export function LogFuelModal({
   currentKm,
 }: LogFuelModalProps) {
   const db = useSQLiteContext();
-  const [odometerStr, setOdometerStr] = useState('');
-  const [litresStr, setLitresStr] = useState('');
+  const [odometerStr, setOdometerStr] = useState("");
+  const [litresStr, setLitresStr] = useState("");
   const [isFullTank, setIsFullTank] = useState(true);
 
   useEffect(() => {
     if (visible) {
       setOdometerStr(String(currentKm));
-      setLitresStr('');
+      setLitresStr("");
       setIsFullTank(true);
     }
   }, [visible, currentKm]);
 
   const odometer = parseFloat(odometerStr);
   const litres = parseFloat(litresStr);
-  const isValid = !isNaN(odometer) && odometer >= 0 && !isNaN(litres) && litres > 0;
+  const isValid =
+    !isNaN(odometer) && odometer >= 0 && !isNaN(litres) && litres > 0;
 
   async function handleSave() {
     if (!isValid) return;
@@ -45,7 +52,7 @@ export function LogFuelModal({
       onSaved();
       onClose();
     } catch (error) {
-      console.error('Failed to log fuel:', error);
+      console.error("Failed to log fuel:", error);
       // User can retry without modal closing
     }
   }
@@ -95,7 +102,10 @@ export function LogFuelModal({
         <Switch
           value={isFullTank}
           onValueChange={setIsFullTank}
-          trackColor={{ false: Colors.dark.backgroundSelected, true: Colors.dark.primary }}
+          trackColor={{
+            false: Colors.dark.backgroundSelected,
+            true: Colors.dark.primary,
+          }}
           thumbColor="#fff"
         />
       </View>
@@ -103,7 +113,8 @@ export function LogFuelModal({
       <TouchableOpacity
         style={[styles.button, !isValid && styles.buttonDisabled]}
         onPress={handleSave}
-        disabled={!isValid}>
+        disabled={!isValid}
+      >
         <ThemedText type="default" style={styles.buttonText}>
           Log Fill-up
         </ThemedText>
@@ -128,9 +139,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: Spacing.two,
     marginBottom: Spacing.two,
   },
@@ -142,14 +153,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.primary,
     borderRadius: Spacing.two,
     padding: Spacing.three,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: Spacing.two,
   },
   buttonDisabled: {
     opacity: 0.4,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
 });

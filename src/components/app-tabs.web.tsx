@@ -1,25 +1,29 @@
 import {
-  Tabs,
   TabList,
-  TabTrigger,
+  Tabs,
   TabSlot,
+  TabTrigger,
   TabTriggerSlotProps,
-} from 'expo-router/ui';
-import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+} from "expo-router/ui";
+import React from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { MaxContentWidth, Spacing } from "@/constants/theme";
+import { ThemedText } from "./themed-text";
+import { ThemedView } from "./themed-view";
 
 export default function AppTabs() {
   return (
     <Tabs>
-      <TabSlot style={{ height: '100%' }} />
+      <TabSlot style={{ height: "100%" }} />
       <TabList asChild>
         <View style={styles.tabListContainer}>
           <ThemedView type="backgroundElement" style={styles.innerContainer}>
-            <ThemedText type="smallBold" themeColor="primary" style={styles.brandText}>
+            <ThemedText
+              type="smallBold"
+              themeColor="primary"
+              style={styles.brandText}
+            >
               LogLeaf
             </ThemedText>
             <TabTrigger name="home" href="/" asChild>
@@ -39,11 +43,13 @@ function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
+        type={isFocused ? "backgroundSelected" : "backgroundElement"}
+        style={styles.tabButtonView}
+      >
         <ThemedText
           type="small"
-          themeColor={isFocused ? 'primary' : 'textSecondary'}>
+          themeColor={isFocused ? "primary" : "textSecondary"}
+        >
           {children}
         </ThemedText>
       </ThemedView>
@@ -53,25 +59,25 @@ function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
 
 const styles = StyleSheet.create({
   tabListContainer: {
-    position: 'absolute',
-    width: '100%',
+    position: "absolute",
+    width: "100%",
     padding: Spacing.three,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
   },
   innerContainer: {
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.five,
     borderRadius: Spacing.five,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flexGrow: 1,
     gap: Spacing.two,
     maxWidth: MaxContentWidth,
   },
   brandText: {
-    marginRight: 'auto',
+    marginRight: "auto",
   },
   pressed: {
     opacity: 0.7,

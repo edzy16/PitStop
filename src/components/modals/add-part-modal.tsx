@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { Colors, Spacing } from '@/constants/theme';
-import { Part } from '@/types';
-import { addPart, updatePart } from '@/db/parts';
-import { ModalSheet } from '@/components/modal-sheet';
-import { ThemedText } from '@/components/themed-text';
+import { ModalSheet } from "@/components/modal-sheet";
+import { ThemedText } from "@/components/themed-text";
+import { Colors, Spacing } from "@/constants/theme";
+import { addPart, updatePart } from "@/db/parts";
+import { Part } from "@/types";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 interface AddPartModalProps {
   visible: boolean;
@@ -26,9 +26,9 @@ export function AddPartModal({
   existing,
 }: AddPartModalProps) {
   const db = useSQLiteContext();
-  const [name, setName] = useState('');
-  const [replacedAtStr, setReplacedAtStr] = useState('');
-  const [intervalStr, setIntervalStr] = useState('');
+  const [name, setName] = useState("");
+  const [replacedAtStr, setReplacedAtStr] = useState("");
+  const [intervalStr, setIntervalStr] = useState("");
 
   useEffect(() => {
     if (existing) {
@@ -36,9 +36,9 @@ export function AddPartModal({
       setReplacedAtStr(String(existing.replaced_at_km));
       setIntervalStr(String(existing.interval_km));
     } else {
-      setName('');
+      setName("");
       setReplacedAtStr(String(currentKm));
-      setIntervalStr('');
+      setIntervalStr("");
     }
   }, [existing, visible, currentKm]);
 
@@ -60,7 +60,7 @@ export function AddPartModal({
       onSaved();
       onClose();
     } catch (error) {
-      console.error('Failed to save part:', error);
+      console.error("Failed to save part:", error);
       // User can retry without modal closing
     }
   }
@@ -68,7 +68,7 @@ export function AddPartModal({
   return (
     <ModalSheet visible={visible} onClose={onClose}>
       <ThemedText type="subtitle" style={styles.title}>
-        {isEdit ? 'Edit Part' : 'Add Part'}
+        {isEdit ? "Edit Part" : "Add Part"}
       </ThemedText>
 
       <View style={styles.field}>
@@ -117,9 +117,10 @@ export function AddPartModal({
       <TouchableOpacity
         style={[styles.button, !isValid && styles.buttonDisabled]}
         onPress={handleSave}
-        disabled={!isValid}>
+        disabled={!isValid}
+      >
         <ThemedText type="default" style={styles.buttonText}>
-          {isEdit ? 'Save Changes' : 'Add Part'}
+          {isEdit ? "Save Changes" : "Add Part"}
         </ThemedText>
       </TouchableOpacity>
     </ModalSheet>
@@ -145,14 +146,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.primary,
     borderRadius: Spacing.two,
     padding: Spacing.three,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: Spacing.two,
   },
   buttonDisabled: {
     opacity: 0.4,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
 });

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { Colors, Spacing } from '@/constants/theme';
-import { Vehicle } from '@/types';
-import { addVehicle, updateVehicle } from '@/db/vehicles';
-import { ModalSheet } from '@/components/modal-sheet';
-import { ThemedText } from '@/components/themed-text';
+import { ModalSheet } from "@/components/modal-sheet";
+import { ThemedText } from "@/components/themed-text";
+import { Colors, Spacing } from "@/constants/theme";
+import { addVehicle, updateVehicle } from "@/db/vehicles";
+import { Vehicle } from "@/types";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 interface AddVehicleModalProps {
   visible: boolean;
@@ -22,9 +22,9 @@ export function AddVehicleModal({
   existing,
 }: AddVehicleModalProps) {
   const db = useSQLiteContext();
-  const [name, setName] = useState(existing?.name ?? '');
+  const [name, setName] = useState(existing?.name ?? "");
   const [kmStr, setKmStr] = useState(
-    existing ? String(existing.current_km) : ''
+    existing ? String(existing.current_km) : "",
   );
 
   useEffect(() => {
@@ -32,8 +32,8 @@ export function AddVehicleModal({
       setName(existing.name);
       setKmStr(String(existing.current_km));
     } else {
-      setName('');
-      setKmStr('');
+      setName("");
+      setKmStr("");
     }
   }, [existing, visible]);
 
@@ -51,14 +51,14 @@ export function AddVehicleModal({
     }
     onSaved();
     onClose();
-    setName('');
-    setKmStr('');
+    setName("");
+    setKmStr("");
   }
 
   return (
     <ModalSheet visible={visible} onClose={onClose}>
       <ThemedText type="subtitle" style={styles.title}>
-        {isEdit ? 'Edit Vehicle' : 'Add Vehicle'}
+        {isEdit ? "Edit Vehicle" : "Add Vehicle"}
       </ThemedText>
 
       <View style={styles.field}>
@@ -94,9 +94,10 @@ export function AddVehicleModal({
       <TouchableOpacity
         style={[styles.button, !name.trim() && styles.buttonDisabled]}
         onPress={handleSave}
-        disabled={!name.trim()}>
+        disabled={!name.trim()}
+      >
         <ThemedText type="default" style={styles.buttonText}>
-          {isEdit ? 'Save Changes' : 'Add Vehicle'}
+          {isEdit ? "Save Changes" : "Add Vehicle"}
         </ThemedText>
       </TouchableOpacity>
     </ModalSheet>
@@ -122,14 +123,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.primary,
     borderRadius: Spacing.two,
     padding: Spacing.three,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: Spacing.two,
   },
   buttonDisabled: {
     opacity: 0.4,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
 });
