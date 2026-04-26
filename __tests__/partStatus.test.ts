@@ -49,3 +49,24 @@ describe('getKmRemaining', () => {
     expect(getKmRemaining(part, 13500)).toBe(-500);
   });
 });
+
+const trackedPart: Part = {
+  id: 2,
+  vehicle_id: 1,
+  name: 'Air Filter',
+  replaced_at_km: 10000,
+  interval_km: null,
+};
+
+describe('getPartStatus with null interval', () => {
+  it("returns 'tracked' regardless of currentKm", () => {
+    expect(getPartStatus(trackedPart, 0)).toBe('tracked');
+    expect(getPartStatus(trackedPart, 50000)).toBe('tracked');
+  });
+});
+
+describe('getKmRemaining with null interval', () => {
+  it('returns null when interval_km is null', () => {
+    expect(getKmRemaining(trackedPart, 12000)).toBeNull();
+  });
+});
