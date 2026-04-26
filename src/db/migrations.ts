@@ -1,6 +1,9 @@
 import { SQLiteDatabase } from 'expo-sqlite';
 
 export async function migrateDb(db: SQLiteDatabase): Promise<void> {
+  // Foreign keys are per-connection in SQLite, so this must run on every open.
+  await db.execAsync('PRAGMA foreign_keys = ON;');
+
   await db.execAsync(
     'CREATE TABLE IF NOT EXISTS migrations (version INTEGER PRIMARY KEY);'
   );
@@ -37,8 +40,6 @@ export async function migrateDb(db: SQLiteDatabase): Promise<void> {
 
       CREATE INDEX IF NOT EXISTS idx_parts_vehicle ON parts(vehicle_id);
       CREATE INDEX IF NOT EXISTS idx_fuel_logs_vehicle ON fuel_logs(vehicle_id, odometer_km);
-
-      PRAGMA foreign_keys = ON;
     `);
     await db.runAsync('INSERT INTO migrations (version) VALUES (?)', 1);
   }
