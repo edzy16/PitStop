@@ -17,6 +17,7 @@ export interface FuelLog {
   vehicle_id: number;
   odometer_km: number;
   fuel_litres: number;
+  is_full_tank: number; // 0 or 1 — SQLite boolean
   logged_at: number;
 }
 
