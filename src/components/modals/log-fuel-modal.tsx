@@ -40,9 +40,14 @@ export function LogFuelModal({
 
   async function handleSave() {
     if (!isValid) return;
-    await addFuelLog(db, vehicleId, odometer, litres, isFullTank);
-    onSaved();
-    onClose();
+    try {
+      await addFuelLog(db, vehicleId, odometer, litres, isFullTank);
+      onSaved();
+      onClose();
+    } catch (error) {
+      console.error('Failed to log fuel:', error);
+      // User can retry without modal closing
+    }
   }
 
   return (

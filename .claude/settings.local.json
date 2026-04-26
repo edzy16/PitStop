@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -d .worktrees)",
+      "Bash(ls -d worktrees)",
+      "Bash(grep -i \"worktree.*director\" CLAUDE.md)",
+      "Bash(bun install:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx expo:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git:*)",
+      "Bash(bun test *)"
+    ]
+  }
+}

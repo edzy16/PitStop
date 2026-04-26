@@ -10,7 +10,6 @@ import { AddSheet } from '@/components/add-sheet';
 
 export default function TabLayout() {
   const [addOpen, setAddOpen] = useState(false);
-  const [, setRefreshKey] = useState(0);
 
   return (
     <SQLiteProvider databaseName="logleaf.db" onInit={migrateDb}>
@@ -21,7 +20,7 @@ export default function TabLayout() {
         <AddSheet
           visible={addOpen}
           onClose={() => setAddOpen(false)}
-          onSaved={() => setRefreshKey(k => k + 1)}
+          onSaved={() => setAddOpen(false)}
         />
       </ThemeProvider>
     </SQLiteProvider>

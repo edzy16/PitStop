@@ -12,7 +12,10 @@
     "test": "jest"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    }
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.15.5",

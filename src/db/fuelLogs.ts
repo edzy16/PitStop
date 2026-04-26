@@ -19,20 +19,22 @@ export async function addFuelLog(
   fuelLitres: number,
   isFullTank: boolean
 ): Promise<void> {
-  await db.runAsync(
-    'INSERT INTO fuel_logs (vehicle_id, odometer_km, fuel_litres, is_full_tank, logged_at) VALUES (?, ?, ?, ?, ?)',
-    vehicleId,
-    odometerKm,
-    fuelLitres,
-    isFullTank ? 1 : 0,
-    Date.now()
-  );
-  // Bump vehicle odometer to latest reading if higher
-  await db.runAsync(
-    'UPDATE vehicles SET current_km = MAX(current_km, ?) WHERE id = ?',
-    odometerKm,
-    vehicleId
-  );
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      'INSERT INTO fuel_logs (vehicle_id, odometer_km, fuel_litres, is_full_tank, logged_at) VALUES (?, ?, ?, ?, ?)',
+      vehicleId,
+      odometerKm,
+      fuelLitres,
+      isFullTank ? 1 : 0,
+      Date.now()
+    );
+    // Bump vehicle odometer to latest reading if higher
+    await db.runAsync(
+      'UPDATE vehicles SET current_km = MAX(current_km, ?) WHERE id = ?',
+      odometerKm,
+      vehicleId
+    );
+  });
 }
 
 export async function deleteFuelLog(

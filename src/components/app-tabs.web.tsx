@@ -19,7 +19,7 @@ export default function AppTabs() {
       <TabList asChild>
         <View style={styles.tabListContainer}>
           <ThemedView type="backgroundElement" style={styles.innerContainer}>
-            <ThemedText type="smallBold" style={styles.brandText}>
+            <ThemedText type="smallBold" themeColor="primary" style={styles.brandText}>
               LogLeaf
             </ThemedText>
             <TabTrigger name="home" href="/" asChild>
@@ -72,7 +72,6 @@ const styles = StyleSheet.create({
   },
   brandText: {
     marginRight: 'auto',
-    color: Colors.dark.primary,
   },
   pressed: {
     opacity: 0.7,

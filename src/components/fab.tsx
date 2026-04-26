@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Platform } from 'react-native';
 import { Colors, BottomTabInset, Spacing } from '@/constants/theme';
 import { ThemedText } from './themed-text';
 
@@ -11,8 +11,16 @@ export function FAB({ onPress }: FABProps) {
   return (
     <Pressable
       style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
-      onPress={onPress}>
-      <ThemedText style={styles.icon}>+</ThemedText>
+      onPress={onPress}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel="Add"
+      accessibilityState={{ disabled: false }}>
+      <ThemedText
+        style={styles.icon}
+        importantForAccessibility="no-hide-descendants">
+        +
+      </ThemedText>
     </Pressable>
   );
 }
@@ -29,6 +37,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3.84,
+      },
+    }),
   },
   pressed: {
     opacity: 0.8,

@@ -39,12 +39,17 @@ export function LogReplacementModal({
 
   async function handleSave() {
     if (!isValid || !part) return;
-    await logReplacement(db, part.id, km);
-    if (km > currentKm) {
-      await updateOdometer(db, vehicleId, km);
+    try {
+      await logReplacement(db, part.id, km);
+      if (km > currentKm) {
+        await updateOdometer(db, vehicleId, km);
+      }
+      onSaved();
+      onClose();
+    } catch (error) {
+      console.error('Failed to log replacement:', error);
+      // User can retry without modal closing
     }
-    onSaved();
-    onClose();
   }
 
   return (

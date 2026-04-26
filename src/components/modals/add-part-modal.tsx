@@ -50,13 +50,19 @@ export function AddPartModal({
     const replacedAt = parseFloat(replacedAtStr) || 0;
     const interval = parseFloat(intervalStr);
 
-    if (isEdit) {
-      await updatePart(db, existing.id, name.trim(), interval);
-    } else {
-      await addPart(db, vehicleId, name.trim(), replacedAt, interval);
+    try {
+      if (isEdit) {
+        if (!existing) return;
+        await updatePart(db, existing.id, name.trim(), interval);
+      } else {
+        await addPart(db, vehicleId, name.trim(), replacedAt, interval);
+      }
+      onSaved();
+      onClose();
+    } catch (error) {
+      console.error('Failed to save part:', error);
+      // User can retry without modal closing
     }
-    onSaved();
-    onClose();
   }
 
   return (

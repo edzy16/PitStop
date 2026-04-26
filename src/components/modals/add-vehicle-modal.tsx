@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Colors, Spacing } from '@/constants/theme';
@@ -26,6 +26,16 @@ export function AddVehicleModal({
   const [kmStr, setKmStr] = useState(
     existing ? String(existing.current_km) : ''
   );
+
+  useEffect(() => {
+    if (existing) {
+      setName(existing.name);
+      setKmStr(String(existing.current_km));
+    } else {
+      setName('');
+      setKmStr('');
+    }
+  }, [existing, visible]);
 
   const isEdit = !!existing;
 

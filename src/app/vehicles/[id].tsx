@@ -32,6 +32,12 @@ export default function VehicleDetailScreen() {
   const db = useSQLiteContext();
   const router = useRouter();
 
+  const vehicleId = parseInt(id, 10);
+  if (isNaN(vehicleId)) {
+    router.back();
+    return null;
+  }
+
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
   const [fuelLogs, setFuelLogs] = useState<FuelLog[]>([]);
@@ -43,8 +49,6 @@ export default function VehicleDetailScreen() {
   const [editPart, setEditPart] = useState<Part | null>(null);
   const [replacePart, setReplacePart] = useState<Part | null>(null);
   const [logFuelOpen, setLogFuelOpen] = useState(false);
-
-  const vehicleId = parseInt(id, 10);
 
   const loadData = useCallback(async () => {
     const [v, p, f, m] = await Promise.all([
