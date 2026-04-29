@@ -37,7 +37,8 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "./plugins/with-android-signing"
     ],
     "experiments": {
       "typedRoutes": true,
