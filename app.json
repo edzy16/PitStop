@@ -18,7 +18,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.edzy.pitstop"
+      "package": "com.edzy.pitstop",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
