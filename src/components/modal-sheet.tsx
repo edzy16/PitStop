@@ -3,7 +3,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -53,7 +52,7 @@ export function ModalSheet({ visible, onClose, children }: ModalSheetProps) {
       onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        behavior="padding">
         <Pressable style={styles.backdrop} onPress={handleBackdropPress} />
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.sheet}>
