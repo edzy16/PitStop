@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build a signed Android APK in CI for sideload distribution. Every push to `main` produces a downloadable workflow artifact; every tag push (`v*`) additionally publishes a GitHub Release with the APK attached.
+Build a signed Android APK in CI for sideload distribution. Every push to `release/production` produces a downloadable workflow artifact; every tag push (`v*`) additionally publishes a GitHub Release with the APK attached. `main` is the dev branch and does not trigger builds — promoting to `release/production` is the explicit gate for cutting an APK.
 
 Out of scope: AAB builds, Play Store submission, iOS, web.
 
@@ -40,7 +40,7 @@ Single job, single workflow file. Triggers:
 ```yaml
 on:
   push:
-    branches: [main]
+    branches: [release/production]
     tags: ['v*']
   workflow_dispatch:  # escape hatch for re-running without re-tagging
 ```
@@ -99,16 +99,19 @@ Before the first CI run, the user must:
   - `expo.version` — semver string, e.g., `1.0.0`. Becomes Android `versionName`.
   - `expo.android.versionCode` — monotonic integer, starting at `1`. Becomes Android `versionCode`.
 - To cut a tagged release: bump one or both fields, commit, `git tag v<version> && git push --tags`.
-- Main-branch builds reuse whatever values are currently in `app.json`. Fine for sideload (signature-matching APKs upgrade-install in place).
+- Builds triggered by `release/production` pushes reuse whatever values are currently in `app.json`. Fine for sideload (signature-matching APKs upgrade-install in place).
 
 ## Trigger Behavior
 
 | Event | Build runs? | Artifact uploaded? | GitHub Release created? |
 |---|---|---|---|
-| Push to `main` | Yes | Yes | No |
+| Push to `main` | No | — | — |
+| Push to `release/production` | Yes | Yes | No |
 | Push tag matching `v*` | Yes | Yes | Yes |
-| Manual `workflow_dispatch` from `main` | Yes | Yes | No |
+| Manual `workflow_dispatch` from `release/production` | Yes | Yes | No |
 | Manual `workflow_dispatch` from a tag ref | Yes | Yes | Yes (re-run case) |
+
+The typical flow: develop on `main`, then when ready to cut an APK, promote to `release/production` (`git checkout release/production && git merge main && git push`). To turn a build into a public Release, push a `v*` tag.
 
 ## Failure Modes & Notes
 
@@ -121,9 +124,9 @@ Before the first CI run, the user must:
 
 ## Testing the Setup
 
-After merging, validation steps:
+After the workflow file lands on `main`, validation steps:
 
-1. Push a trivial commit to `main`. Workflow should run and produce a downloadable artifact in the Actions tab.
+1. Create the `release/production` branch from `main` and push it (`git checkout -b release/production && git push -u origin release/production`). Workflow runs and produces a downloadable artifact in the Actions tab.
 2. Download the artifact, install on a device (`adb install app-release.apk`), confirm app launches.
-3. Bump `app.json` version to `1.0.1`, commit, then `git tag v1.0.1 && git push origin v1.0.1`. Workflow should run and a Release should appear in the GitHub Releases page with the APK attached.
+3. Bump `app.json` version to `1.0.1` and `versionCode` to `2` on `main`, commit, push. Promote to `release/production` (`git checkout release/production && git merge main && git push`). Then `git tag v1.0.1 && git push origin v1.0.1`. The tag push triggers a workflow run that creates a GitHub Release with the APK attached.
 4. On the device, install the v1.0.1 APK over v1.0.0. Should upgrade in place without uninstall (proves signing is consistent).
