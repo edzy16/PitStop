@@ -1,5 +1,6 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { Tabs } from 'expo-router';
 import React from 'react';
+import { Image } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 
@@ -7,28 +8,50 @@ export default function AppTabs() {
   const colors = Colors.dark;
 
   return (
-    <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.primary}
-      labelStyle={{
-        selected: { color: colors.primary },
-        default: { color: colors.textSecondary },
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: { backgroundColor: colors.background },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.backgroundElement,
+          borderTopColor: colors.backgroundSelected,
+        },
       }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color }) => (
+            <Image
+              source={require('@/assets/images/tabIcons/home.png')}
+              style={{ width: 20, height: 20, tintColor: color }}
+            />
+          ),
+        }}
+      />
 
-      <NativeTabs.Trigger name="vehicles">
-        <NativeTabs.Trigger.Label>Vehicles</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+      <Tabs.Screen
+        name="vehicles"
+        options={{
+          title: 'Vehicles',
+          tabBarIcon: ({ color }) => (
+            <Image
+              source={require('@/assets/images/tabIcons/explore.png')}
+              style={{ width: 20, height: 20, tintColor: color }}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="vehicles/[id]"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+    </Tabs>
   );
 }

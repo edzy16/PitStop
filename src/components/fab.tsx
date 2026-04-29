@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: BottomTabInset + Spacing.three,
     right: Spacing.four,
+    zIndex: 100,
     width: 56,
     height: 56,
     borderRadius: 28,

@@ -1,5 +1,6 @@
 import {
   TabList,
+  TabListProps,
   Tabs,
   TabSlot,
   TabTrigger,
@@ -17,25 +18,33 @@ export default function AppTabs() {
     <Tabs>
       <TabSlot style={{ height: "100%" }} />
       <TabList asChild>
-        <View style={styles.tabListContainer}>
-          <ThemedView type="backgroundElement" style={styles.innerContainer}>
-            <ThemedText
-              type="smallBold"
-              themeColor="primary"
-              style={styles.brandText}
-            >
-              LogLeaf
-            </ThemedText>
-            <TabTrigger name="home" href="/" asChild>
-              <TabButton>Home</TabButton>
-            </TabTrigger>
-            <TabTrigger name="vehicles" href="/vehicles" asChild>
-              <TabButton>Vehicles</TabButton>
-            </TabTrigger>
-          </ThemedView>
-        </View>
+        <CustomTabList>
+          <TabTrigger name="home" href="/" asChild>
+            <TabButton>Home</TabButton>
+          </TabTrigger>
+          <TabTrigger name="vehicles" href="/vehicles" asChild>
+            <TabButton>Vehicles</TabButton>
+          </TabTrigger>
+        </CustomTabList>
       </TabList>
     </Tabs>
+  );
+}
+
+function CustomTabList({ children, ...props }: TabListProps) {
+  return (
+    <View {...props} style={styles.tabListContainer}>
+      <ThemedView type="backgroundElement" style={styles.innerContainer}>
+        <ThemedText
+          type="smallBold"
+          themeColor="primary"
+          style={styles.brandText}
+        >
+          LogLeaf
+        </ThemedText>
+        {children}
+      </ThemedView>
+    </View>
   );
 }
 

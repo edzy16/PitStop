@@ -33,10 +33,6 @@ export default function VehicleDetailScreen() {
   const router = useRouter();
 
   const vehicleId = parseInt(id, 10);
-  if (isNaN(vehicleId)) {
-    router.back();
-    return null;
-  }
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [parts, setParts] = useState<Part[]>([]);
@@ -51,6 +47,11 @@ export default function VehicleDetailScreen() {
   const [logFuelOpen, setLogFuelOpen] = useState(false);
 
   const loadData = useCallback(async () => {
+    if (isNaN(vehicleId)) {
+      router.back();
+      return;
+    }
+
     const [v, p, f, m] = await Promise.all([
       getVehicleById(db, vehicleId),
       getPartsByVehicle(db, vehicleId),
@@ -74,6 +75,7 @@ export default function VehicleDetailScreen() {
     }, [loadData]),
   );
 
+  if (isNaN(vehicleId)) return null;
   if (!vehicle) return null;
 
   async function handleOdometerSave() {

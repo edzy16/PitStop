@@ -21,6 +21,8 @@ export function ModalSheet({ visible, onClose, children }: ModalSheetProps) {
       visible={visible}
       transparent
       animationType="slide"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
       onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={styles.container}

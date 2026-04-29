@@ -16,6 +16,7 @@ import { Vehicle } from '@/types';
 import { getVehicles, deleteVehicle } from '@/db/vehicles';
 import { ThemedText } from '@/components/themed-text';
 import { AddVehicleModal } from '@/components/modals/add-vehicle-modal';
+import { GlobalAddLauncher } from '@/components/global-add-launcher';
 
 export default function VehiclesScreen() {
   const db = useSQLiteContext();
@@ -82,7 +83,7 @@ export default function VehiclesScreen() {
         {vehicles.length === 0 && (
           <View style={styles.emptyState}>
             <ThemedText themeColor="textSecondary" style={styles.emptyText}>
-              No vehicles yet.{'\n'}Tap "+ Add" to get started.
+              No vehicles yet.{'\n'}Tap + Add to get started.
             </ThemedText>
           </View>
         )}
@@ -120,6 +121,8 @@ export default function VehiclesScreen() {
           existing={editVehicle}
         />
       )}
+
+      <GlobalAddLauncher />
     </View>
   );
 }

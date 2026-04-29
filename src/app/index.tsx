@@ -12,6 +12,7 @@ import { getPartStatus } from '@/utils/partStatus';
 import { VehicleCard } from '@/components/vehicle-card';
 import { ThemedText } from '@/components/themed-text';
 import { LogReplacementModal } from '@/components/modals/log-replacement-modal';
+import { GlobalAddLauncher } from '@/components/global-add-launcher';
 
 interface VehicleWithFlaggedParts {
   vehicle: Vehicle;
@@ -109,6 +110,8 @@ export default function HomeScreen() {
           currentKm={selectedVehicle.current_km}
         />
       )}
+
+      <GlobalAddLauncher />
     </View>
   );
 }
