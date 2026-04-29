@@ -1,4 +1,4 @@
-# LogLeaf — App Design Spec
+# Pit Stop — App Design Spec
 
 **Date:** 2026-04-26
 **Stack:** Expo (React Native), expo-sqlite, expo-router, TypeScript
@@ -7,7 +7,7 @@
 
 ## Overview
 
-LogLeaf is a mobile-first vehicle maintenance tracker that helps users know when to replace parts (engine oil, brake cable, etc.) and calculate fuel mileage. It supports multiple user-defined vehicles with no backend — all data is stored locally via expo-sqlite.
+Pit Stop is a mobile-first vehicle maintenance tracker that helps users know when to replace parts (engine oil, brake cable, etc.) and calculate fuel mileage. It supports multiple user-defined vehicles with no backend — all data is stored locally via expo-sqlite.
 
 ---
 

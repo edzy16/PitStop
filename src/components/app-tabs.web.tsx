@@ -40,7 +40,7 @@ function CustomTabList({ children, ...props }: TabListProps) {
           themeColor="primary"
           style={styles.brandText}
         >
-          LogLeaf
+          Pit Stop
         </ThemedText>
         {children}
       </ThemedView>

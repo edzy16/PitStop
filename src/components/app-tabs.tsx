@@ -1,8 +1,8 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Image } from 'react-native';
+import { Tabs } from "expo-router";
+import { Image } from "react-native";
 
-import { Colors } from '@/constants/theme';
+import MotorbikeFill from "@/assets/icons/bike";
+import { Colors } from "@/constants/theme";
 
 export default function AppTabs() {
   const colors = Colors.dark;
@@ -18,14 +18,15 @@ export default function AppTabs() {
           backgroundColor: colors.backgroundElement,
           borderTopColor: colors.backgroundSelected,
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: "Home",
           tabBarIcon: ({ color }) => (
             <Image
-              source={require('@/assets/images/tabIcons/home.png')}
+              source={require("@/assets/images/tabIcons/home.png")}
               style={{ width: 20, height: 20, tintColor: color }}
             />
           ),
@@ -35,13 +36,8 @@ export default function AppTabs() {
       <Tabs.Screen
         name="vehicles"
         options={{
-          title: 'Vehicles',
-          tabBarIcon: ({ color }) => (
-            <Image
-              source={require('@/assets/images/tabIcons/explore.png')}
-              style={{ width: 20, height: 20, tintColor: color }}
-            />
-          ),
+          title: "Vehicles",
+          tabBarIcon: ({ color }) => <MotorbikeFill color={color} size={20} />,
         }}
       />
 

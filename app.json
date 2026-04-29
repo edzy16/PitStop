@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "LogLeaf",
-    "slug": "LogLeaf",
+    "name": "Pit Stop",
+    "slug": "pit-stop",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "logleaf",
+    "scheme": "pitstop",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.edzy.LogLeaf"
+      "package": "com.edzy.pitstop"
     },
     "web": {
       "output": "static",

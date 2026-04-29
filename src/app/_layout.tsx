@@ -9,7 +9,7 @@ import { migrateDb } from "@/db/migrations";
 
 export default function TabLayout() {
   return (
-    <SQLiteProvider databaseName="logleaf.db" onInit={migrateDb}>
+    <SQLiteProvider databaseName="pitstop.db" onInit={migrateDb}>
       <ThemeProvider value={DarkTheme}>
         <View style={styles.container}>
           <AnimatedSplashOverlay />

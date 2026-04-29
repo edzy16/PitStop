@@ -14,7 +14,8 @@
       "Bash(cat C:\\\\\\\\Users\\\\\\\\edwin\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\d--Dev-LogLeaf\\\\\\\\5030ca2c-4aa1-446c-85c6-765a38ffca08\\\\\\\\tasks\\\\\\\\b2cwx9x4o.output)",
       "Bash(node -c src/db/migrations.ts)",
       "PowerShell(git diff HEAD -- package.json app.json)",
-      "Bash(./node_modules/.bin/tsc --noEmit)"
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(./node_modules/.bin/tsc --version)"
     ]
   }
 }

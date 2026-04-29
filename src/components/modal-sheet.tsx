@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
   StyleSheet,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { Colors, Spacing } from '@/constants/theme';
@@ -16,6 +18,31 @@ interface ModalSheetProps {
 }
 
 export function ModalSheet({ visible, onClose, children }: ModalSheetProps) {
+  // Track keyboard so backdrop taps with keyboard open dismiss the keyboard first
+  // instead of closing the modal mid-animation (which causes a visible jitter).
+  const keyboardOpenRef = useRef(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      keyboardOpenRef.current = true;
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      keyboardOpenRef.current = false;
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  function handleBackdropPress() {
+    if (keyboardOpenRef.current) {
+      Keyboard.dismiss();
+      return;
+    }
+    onClose();
+  }
+
   return (
     <Modal
       visible={visible}
@@ -27,11 +54,13 @@ export function ModalSheet({ visible, onClose, children }: ModalSheetProps) {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handle} />
-          {children}
-        </View>
+        <Pressable style={styles.backdrop} onPress={handleBackdropPress} />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.sheet}>
+            <View style={styles.handle} />
+            {children}
+          </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>
   );

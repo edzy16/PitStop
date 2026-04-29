@@ -1,4 +1,4 @@
-# LogLeaf App Implementation Plan
+# Pit Stop App Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -55,7 +55,7 @@
 - [ ] **Step 1: Install expo-sqlite**
 
 ```bash
-cd D:/Dev/LogLeaf && npx expo install expo-sqlite
+cd D:/Dev/Pit Stop && npx expo install expo-sqlite
 ```
 
 Expected: `expo-sqlite` added to `package.json` dependencies.
@@ -1939,7 +1939,7 @@ export default function TabLayout() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   return (
-    <SQLiteProvider databaseName="logleaf.db" onInit={migrateDb}>
+    <SQLiteProvider databaseName="pitstop.db" onInit={migrateDb}>
       <ThemeProvider value={DarkTheme}>
         <AnimatedSplashOverlay />
         <AppTabs />
@@ -2022,7 +2022,7 @@ export default function AppTabs() {
         <View style={styles.tabListContainer}>
           <ThemedView type="backgroundElement" style={styles.innerContainer}>
             <ThemedText type="smallBold" style={styles.brandText}>
-              LogLeaf
+              Pit Stop
             </ThemedText>
             <TabTrigger name="home" href="/" asChild>
               <TabButton>Home</TabButton>
@@ -2983,7 +2983,7 @@ const styles = StyleSheet.create({
 - [ ] **Step 4: Delete the old explore.tsx**
 
 ```bash
-cd D:/Dev/LogLeaf && git rm src/app/explore.tsx
+cd D:/Dev/Pit Stop && git rm src/app/explore.tsx
 ```
 
 - [ ] **Step 5: Commit**
