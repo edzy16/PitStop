@@ -19,7 +19,10 @@
       "Bash(node -p \"require\\('./app.json'\\).expo.android.versionCode\")",
       "Bash(node -e ' *)",
       "Bash(node -e \"const p = require\\('./plugins/with-android-signing.js'\\); if \\(typeof p !== 'function'\\) process.exit\\(1\\); console.log\\('ok'\\);\")",
-      "Bash(node -p \"JSON.stringify\\(require\\('./app.json'\\).expo.plugins, null, 2\\)\")"
+      "Bash(node -p \"JSON.stringify\\(require\\('./app.json'\\).expo.plugins, null, 2\\)\")",
+      "PowerShell(Get-ChildItem -Path \"$env:USERPROFILE\\\\pit-stop-release.keystore\" -ErrorAction SilentlyContinue | Select-Object FullName, Length, LastWriteTime)",
+      "Bash(gh run *)",
+      "PowerShell(gh run list --workflow=android-release.yml --limit 3 2>&1)"
     ]
   }
 }
