@@ -4,19 +4,14 @@
     "slug": "pit-stop",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/appIcons/appstore.png",
     "scheme": "pitstop",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/appIcons/appstore.png"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      },
+      "icon": "./assets/appIcons/playstore.png",
       "predictiveBackGestureEnabled": false,
       "package": "com.edzy.pitstop",
       "versionCode": 1
@@ -30,7 +25,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F3A261",
           "android": {
             "image": "./assets/images/splash-icon.png",
             "imageWidth": 76
