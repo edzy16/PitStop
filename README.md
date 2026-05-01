@@ -1,56 +1,62 @@
-# Welcome to your Expo app 👋
+# Pit Stop
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A local-only vehicle maintenance tracker. Log fuel, track odometer, get warned before parts go overdue — across as many vehicles as you own. No accounts, no backend, no cloud.
 
-## Get started
+Built with Expo Router, React Native, and SQLite.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **Multi-vehicle** — track every car, bike, or scooter in one place.
+- **Parts & service intervals** — set an interval (km) per part; the home screen flags anything overdue or due-soon (within 500 km).
+- **Mileage calculator** — fuel logs power lifetime and last-5-fill averages. Returns *precise* numbers once you have two full-tank entries; *estimated* before that.
+- **Fuel & odometer log** — quick-entry modal with a "Filled to full" switch (on by default) so partial fills don't break the math.
+- **Offline-first** — all data lives in on-device SQLite. Nothing leaves the phone.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting started
 
 ```bash
-npm run reset-project
+bun install
+bun run start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then open the app on:
 
-### Other setup steps
+- Android (`bun run android`)
+- iOS (`bun run ios`)
+- Web (`bun run web`)
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Development
 
-## Learn more
+```bash
+# Type check
+npx tsc --noEmit
 
-To learn more about developing your project with Expo, look at the following resources:
+# Lint
+bun run lint
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Tests
+bun run test
+npx jest __tests__/mileage.test.ts   # single file
+```
 
-## Join the community
+## Project layout
 
-Join our community of developers creating universal apps.
+```
+src/
+  app/          expo-router screens (index, vehicles, vehicles/[id], modals)
+  db/           SQLite migrations + repository functions (vehicles, parts, fuelLogs)
+  utils/        pure logic (partStatus, mileage) — unit-tested
+  components/   shared UI (ModalSheet, AddSheet wizard, AppTabs)
+  constants/    theme (dark-only palette)
+__tests__/      jest specs for the pure-logic utils
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Path alias `@/` maps to `src/`. Migrations run on every DB open via `SQLiteProvider`'s `onInit`.
+
+## Architecture notes
+
+- **No global state library.** Each screen runs its own DB queries inside `useFocusEffect` and re-fetches on focus. Modals trigger refresh through `onSaved` callbacks.
+- **Repositories, not classes.** Files in `src/db/` are plain async functions taking `db: SQLiteDatabase` as the first arg.
+- **Pure logic stays pure.** `src/utils/` has no React and no I/O — data in, data out — which is why it's the only thing under test.
+- **Dark theme only.** `Colors.light` is aliased to `Colors.dark` for backward compat with components that index by scheme.
+- **Web overrides.** Files with `.web.tsx` / `.web.ts` suffixes shadow their native counterparts on web.
