@@ -2,7 +2,7 @@
   "expo": {
     "name": "Pit Stop",
     "slug": "pit-stop",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/appIcons/appstore.png",
     "scheme": "pitstop",
