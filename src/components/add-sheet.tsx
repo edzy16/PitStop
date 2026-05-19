@@ -10,9 +10,11 @@ import { getPartsByVehicle } from '@/db/parts';
 import { ModalSheet } from './modal-sheet';
 import { LogReplacementModal } from './modals/log-replacement-modal';
 import { LogFuelModal } from './modals/log-fuel-modal';
+import { AddVehicleModal } from './modals/add-vehicle-modal';
+import { AddPartModal } from './modals/add-part-modal';
 import { ThemedText } from './themed-text';
 
-type AddAction = 'replacement' | 'fuel' | null;
+type AddAction = 'replacement' | 'fuel' | 'add-vehicle' | null;
 
 interface AddSheetProps {
   visible: boolean;
@@ -27,6 +29,7 @@ export function AddSheet({ visible, onClose, onSaved }: AddSheetProps) {
   const [parts, setParts] = useState<Part[]>([]);
   const [selectedPart, setSelectedPart] = useState<Part | null>(null);
   const [action, setAction] = useState<AddAction>(null);
+  const [addPartOpen, setAddPartOpen] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -35,35 +38,118 @@ export function AddSheet({ visible, onClose, onSaved }: AddSheetProps) {
       setParts([]);
       setSelectedPart(null);
       setAction(null);
+      setAddPartOpen(false);
     }
   }, [visible, db]);
 
   async function handleVehicleSelect(vehicle: Vehicle) {
     setSelectedVehicle(vehicle);
-    const p = await getPartsByVehicle(db, vehicle.id);
-    setParts(p);
+    if (action === 'replacement') {
+      const p = await getPartsByVehicle(db, vehicle.id);
+      setParts(p);
+    }
   }
 
-  function handleActionSelect(a: AddAction) {
-    if (!selectedVehicle) return;
-    setAction(a);
+  function resetSteps() {
+    setSelectedVehicle(null);
+    setParts([]);
+    setSelectedPart(null);
+    setAction(null);
+    setAddPartOpen(false);
+  }
+
+  function handleCancel() {
+    resetSteps();
+    onClose();
   }
 
   function handleSaved() {
     onSaved();
+    resetSteps();
     onClose();
-    setAction(null);
   }
 
+  // Step 1: Action picker
+  if (action === null) {
+    return (
+      <ModalSheet visible={visible} onClose={handleCancel}>
+        <ThemedText type="subtitle" style={styles.titleCenter}>
+          Add / Log
+        </ThemedText>
+        <View style={styles.rowList}>
+          <TouchableOpacity
+            style={styles.actionRow}
+            onPress={() => setAction('add-vehicle')}>
+            <View style={styles.iconTile}>
+              <MaterialIcons name="directions-car" size={24} color={Colors.dark.primary} />
+            </View>
+            <View style={styles.actionRowContent}>
+              <ThemedText type="default" style={styles.rowTitle}>Add Vehicle</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Add a new vehicle to track
+              </ThemedText>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={Colors.dark.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionRow}
+            onPress={() => setAction('replacement')}>
+            <View style={styles.iconTile}>
+              <MaterialIcons name="auto-fix-high" size={24} color={Colors.dark.primary} />
+            </View>
+            <View style={styles.actionRowContent}>
+              <ThemedText type="default" style={styles.rowTitle}>Log Part Replacement</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Reset maintenance interval
+              </ThemedText>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={Colors.dark.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionRow}
+            onPress={() => setAction('fuel')}>
+            <View style={styles.iconTile}>
+              <MaterialIcons name="local-gas-station" size={24} color={Colors.dark.primary} />
+            </View>
+            <View style={styles.actionRowContent}>
+              <ThemedText type="default" style={styles.rowTitle}>Log Fuel Fill-up</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Track mileage and cost
+              </ThemedText>
+            </View>
+            <MaterialIcons name="chevron-right" size={20} color={Colors.dark.textMuted} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+          <ThemedText style={styles.cancelText}>Cancel</ThemedText>
+        </TouchableOpacity>
+      </ModalSheet>
+    );
+  }
+
+  // Add vehicle has no vehicle-selection step
+  if (action === 'add-vehicle') {
+    return (
+      <AddVehicleModal
+        visible={visible}
+        onClose={handleCancel}
+        onSaved={handleSaved}
+      />
+    );
+  }
+
+  // Step 2: Vehicle picker (for replacement, fuel)
   if (!selectedVehicle) {
     return (
-      <ModalSheet visible={visible} onClose={onClose}>
+      <ModalSheet visible={visible} onClose={handleCancel}>
         <ThemedText type="subtitle" style={styles.titleCenter}>
           Select Vehicle
         </ThemedText>
         {vehicles.length === 0 && (
           <ThemedText themeColor="textSecondary" style={styles.empty}>
-            No vehicles yet. Add one from the Vehicles tab.
+            No vehicles yet. Add one first.
           </ThemedText>
         )}
         <View style={styles.rowList}>
@@ -82,60 +168,32 @@ export function AddSheet({ visible, onClose, onSaved }: AddSheetProps) {
             </TouchableOpacity>
           ))}
         </View>
+        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+          <ThemedText style={styles.cancelText}>Cancel</ThemedText>
+        </TouchableOpacity>
       </ModalSheet>
     );
   }
 
+  async function handlePartAdded() {
+    const p = await getPartsByVehicle(db, selectedVehicle!.id);
+    setParts(p);
+    setAddPartOpen(false);
+  }
+
   return (
     <>
-      <ModalSheet visible={visible && action === null} onClose={onClose}>
-        <ThemedText type="subtitle" style={styles.titleCenter}>
-          {selectedVehicle.name}
-        </ThemedText>
-        <ThemedText style={styles.stepCaption} themeColor="textSecondary">
-          CHOOSE ACTION
-        </ThemedText>
-        <View style={styles.rowList}>
-          <TouchableOpacity
-            style={styles.actionRow}
-            onPress={() => handleActionSelect('replacement')}>
-            <View style={styles.iconTile}>
-              <MaterialIcons name="auto-fix-high" size={24} color={Colors.dark.primary} />
-            </View>
-            <View style={styles.actionRowContent}>
-              <ThemedText type="default" style={styles.rowTitle}>Log Part Replacement</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Reset maintenance interval
-              </ThemedText>
-            </View>
-            <MaterialIcons name="chevron-right" size={20} color={Colors.dark.textMuted} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionRow}
-            onPress={() => handleActionSelect('fuel')}>
-            <View style={styles.iconTile}>
-              <MaterialIcons name="local-gas-station" size={24} color={Colors.dark.primary} />
-            </View>
-            <View style={styles.actionRowContent}>
-              <ThemedText type="default" style={styles.rowTitle}>Log Fuel Fill-up</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Track mileage and cost
-              </ThemedText>
-            </View>
-            <MaterialIcons name="chevron-right" size={20} color={Colors.dark.textMuted} />
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-          <ThemedText style={styles.cancelText}>Cancel</ThemedText>
-        </TouchableOpacity>
-      </ModalSheet>
-
       {action === 'replacement' && (
-        <ModalSheet visible onClose={() => setAction(null)}>
-          <ThemedText type="subtitle" style={styles.titleCenter}>
-            Select Part
-          </ThemedText>
+        <ModalSheet visible={visible} onClose={handleCancel}>
+          <View style={styles.partListHeader}>
+            <ThemedText type="subtitle" style={[styles.titleCenter, { marginBottom: 0 }]}>
+              Select Part
+            </ThemedText>
+            <TouchableOpacity style={styles.addPartLink} onPress={() => setAddPartOpen(true)}>
+              <MaterialIcons name="add" size={18} color={Colors.dark.primary} />
+              <ThemedText themeColor="primary">Add Part</ThemedText>
+            </TouchableOpacity>
+          </View>
           {parts.length === 0 && (
             <ThemedText themeColor="textSecondary" style={styles.empty}>
               No parts for this vehicle yet.
@@ -152,24 +210,37 @@ export function AddSheet({ visible, onClose, onSaved }: AddSheetProps) {
               </TouchableOpacity>
             ))}
           </View>
-          <LogReplacementModal
-            visible={selectedPart !== null}
-            onClose={() => setSelectedPart(null)}
-            onSaved={handleSaved}
-            part={selectedPart}
-            vehicleId={selectedVehicle.id}
-            currentKm={selectedVehicle.current_km}
-          />
+          {addPartOpen && (
+            <AddPartModal
+              visible
+              onClose={() => setAddPartOpen(false)}
+              onSaved={handlePartAdded}
+              vehicleId={selectedVehicle.id}
+              currentKm={selectedVehicle.current_km}
+            />
+          )}
+          {selectedPart && (
+            <LogReplacementModal
+              visible
+              onClose={() => setSelectedPart(null)}
+              onSaved={handleSaved}
+              part={selectedPart}
+              vehicleId={selectedVehicle.id}
+              currentKm={selectedVehicle.current_km}
+            />
+          )}
         </ModalSheet>
       )}
 
-      <LogFuelModal
-        visible={action === 'fuel'}
-        onClose={() => setAction(null)}
-        onSaved={handleSaved}
-        vehicleId={selectedVehicle.id}
-        currentKm={selectedVehicle.current_km}
-      />
+      {action === 'fuel' && (
+        <LogFuelModal
+          visible={visible}
+          onClose={handleCancel}
+          onSaved={handleSaved}
+          vehicleId={selectedVehicle.id}
+          currentKm={selectedVehicle.current_km}
+        />
+      )}
     </>
   );
 }
@@ -177,14 +248,18 @@ export function AddSheet({ visible, onClose, onSaved }: AddSheetProps) {
 const styles = StyleSheet.create({
   titleCenter: {
     textAlign: 'center',
-    marginBottom: Spacing.one,
-  },
-  stepCaption: {
-    textAlign: 'center',
-    fontSize: 12,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
     marginBottom: Spacing.four,
+  },
+  partListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.two,
+  },
+  addPartLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   empty: {
     textAlign: 'center',

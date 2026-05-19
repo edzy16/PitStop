@@ -1,19 +1,19 @@
-import React, { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useFocusEffect } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { useSQLiteContext } from "expo-sqlite";
+import React, { useCallback, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Colors, BottomTabInset, Spacing } from '@/constants/theme';
-import { Part, Vehicle } from '@/types';
-import { getVehicles } from '@/db/vehicles';
-import { getPartsByVehicle } from '@/db/parts';
-import { getPartStatus } from '@/utils/partStatus';
-import { VehicleCard } from '@/components/vehicle-card';
-import { ThemedText } from '@/components/themed-text';
-import { LogReplacementModal } from '@/components/modals/log-replacement-modal';
-import { GlobalAddLauncher } from '@/components/global-add-launcher';
+import { GlobalAddLauncher } from "@/components/global-add-launcher";
+import { LogReplacementModal } from "@/components/modals/log-replacement-modal";
+import { ThemedText } from "@/components/themed-text";
+import { VehicleCard } from "@/components/vehicle-card";
+import { BottomTabInset, Colors, Spacing } from "@/constants/theme";
+import { getPartsByVehicle } from "@/db/parts";
+import { getVehicles } from "@/db/vehicles";
+import { Part, Vehicle } from "@/types";
+import { getPartStatus } from "@/utils/partStatus";
 
 interface VehicleWithFlaggedParts {
   vehicle: Vehicle;
@@ -29,14 +29,14 @@ export default function HomeScreen() {
   const loadData = useCallback(async () => {
     const vehicles = await getVehicles(db);
     const results = await Promise.all(
-      vehicles.map(async vehicle => {
+      vehicles.map(async (vehicle) => {
         const parts = await getPartsByVehicle(db, vehicle.id);
-        const flaggedParts = parts.filter(p => {
+        const flaggedParts = parts.filter((p) => {
           const status = getPartStatus(p, vehicle.current_km);
-          return status === 'due-soon' || status === 'overdue';
+          return status === "due-soon" || status === "overdue";
         });
         return { vehicle, flaggedParts };
-      })
+      }),
     );
     setData(results);
   }, [db]);
@@ -44,10 +44,10 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [loadData])
+    }, [loadData]),
   );
 
-  const hasFlags = data.some(d => d.flaggedParts.length > 0);
+  const hasFlags = data.some((d) => d.flaggedParts.length > 0);
 
   function handlePartPress(part: Part, vehicle: Vehicle) {
     setSelectedPart(part);
@@ -60,8 +60,9 @@ export default function HomeScreen() {
         contentContainerStyle={[
           styles.content,
           { paddingBottom: BottomTabInset + Spacing.six },
-        ]}>
-        <SafeAreaView edges={['top']}>
+        ]}
+      >
+        <SafeAreaView edges={["top"]}>
           <ThemedText type="subtitle" style={styles.heading}>
             Maintenance
           </ThemedText>
@@ -70,7 +71,7 @@ export default function HomeScreen() {
         {data.length === 0 && (
           <View style={styles.emptyState}>
             <ThemedText themeColor="textSecondary" style={styles.emptyText}>
-              No vehicles yet.{'\n'}Add one from the Vehicles tab.
+              No vehicles yet.{"\n"}Add one from the Vehicles tab.
             </ThemedText>
           </View>
         )}
@@ -87,13 +88,13 @@ export default function HomeScreen() {
         )}
 
         {data
-          .filter(d => d.flaggedParts.length > 0)
+          .filter((d) => d.flaggedParts.length > 0)
           .map(({ vehicle, flaggedParts }) => (
             <VehicleCard
               key={vehicle.id}
               vehicle={vehicle}
               flaggedParts={flaggedParts}
-              onPartPress={part => handlePartPress(part, vehicle)}
+              onPartPress={(part) => handlePartPress(part, vehicle)}
             />
           ))}
       </ScrollView>
@@ -136,15 +137,15 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     paddingVertical: Spacing.six,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
   },
   allGood: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
     paddingVertical: Spacing.four,
   },
